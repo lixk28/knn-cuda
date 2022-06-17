@@ -148,7 +148,7 @@ void knn_cuda(
 }
 
 
-void knn_cuda(
+void knn_cublas(
     float *x,       // query points
     float *y,       // reference points
     int m,          // #query points
