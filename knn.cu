@@ -117,9 +117,6 @@ __global__ void k_selection_sort(
  *  @n: number of reference points
  *  @d: point dimension
  *  @k: number of nearest neighbors
- *  @p: power parameter for the minkowski metric
- *      - when p = 1, it's equivalent to manhattan distance
- *      - when p = 2, it's equivalent to euclidean distance
  *
  * returns:
  *  @knn_idx: indices of the nearest points
@@ -133,7 +130,6 @@ void knn_cuda(
     int n,            // #reference points
     int d,            // point dimension
     int k,            // #neighbors
-    int p,            // distance metric
     int *knn_idx,     // indices of k-nearest neighbors
     float *knn_dist   // distance of k-nearest neighbors
 )
@@ -301,9 +297,6 @@ __global__ void compute_squared_root(
  *  @n: number of reference points
  *  @d: point dimension
  *  @k: number of nearest neighbors
- *  @p: power parameter for the minkowski metric
- *      - when p = 1, it's equivalent to manhattan distance
- *      - when p = 2, it's equivalent to euclidean distance
  *
  * returns:
  *  @knn_idx: indices of the nearest points
@@ -317,7 +310,6 @@ void knn_cublas(
     int n,            // #reference points
     int d,            // point dimension
     int k,            // #neighbors
-    int p,            // distance metric
     int *knn_idx,     // indices of k-nearest neighbors
     float *knn_dist   // distance of k-nearest neighbors
 )
