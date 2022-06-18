@@ -12,25 +12,25 @@
  * @param query         the float array of query points
  * @param reference     the float array of reference points
  * @param distance      float array to store the distances
- * @param n             the num of query points
- * @param m             the num of reference points
+ * @param m             the num of query points
+ * @param n             the num of reference points
  * @param d             dimension of points
  */
 void compute_distance(
     float* query,
     float* reference,
     float* distance,
-    int n,
     int m,
+    int n,
     int d
 )
 {
     #pragma parallel for
-    for(int i = 0; i < n; i++){
-        for(int j = 0; j < m; j++){
+    for(int i = 0; i < m; i++){
+        for(int j = 0; j < n; j++){
             for(int k = 0; k < d; k++){
                 #pragma omp atomic
-                distance[i * m + j] += (query[i * d + k] - reference[j * d + k]) * (query[i * d + k] - reference[j * d + k]);
+                distance[i * n + j] += (query[i * d + k] - reference[j * d + k]) * (query[i * d + k] - reference[j * d + k]);
             }
         }
     }
@@ -126,34 +126,53 @@ void* generate_data(
 
 int main(){
     const int d = 3;    //dimension
-    const int m = 10;    //the num of reference points
-    const int n = 3;    //the num of query points
+    const int n = 10;    //the num of reference points
+    const int m = 3;    //the num of query points
     const int k = 10;    //the num of neighbors
 
-    float* query = (float*)malloc(sizeof(float) * n * d);
-    float* reference = (float*)malloc(sizeof(float) * m * d);
-    float* distance = (float*)malloc(sizeof(float) * n * m);
+    float* query = (float*)malloc(sizeof(float) * m * d);
+    float* reference = (float*)malloc(sizeof(float) * n * d);
+    float* distance = (float*)malloc(sizeof(float) * m * n);
     int* indices = (int*)malloc(sizeof(int) * m * n);
-    generate_data(query, reference, n, m, d);
+    generate_data(query, reference, m, n, d);
 
     #pragma omp parallel for
-    for(int i = 0; i < n; i++){
-        for(int j = 0; j < m; j++){
-            indices[i * m + j] = j;
+    for(int i = 0; i < m; i++){
+        for(int j = 0; j < n; j++){
+            indices[i * n + j] = j;
         }
     }
 
-    //数据生成
-
-    compute_distance(query, reference, distance, n, m, d);
+    compute_distance(query, reference, distance, m, n, d);
 
     #pragma omp parallel for
-    for(int i = 0; i < n; i++){
-        odd_even_sort(distance + i * m, indices + i * m, m);
+    for(int i = 0; i < m; i++){
+        odd_even_sort(distance + i * n, indices + i * n, n);
+    }
+
+    const char* filename = "./result_omp.txt";
+    FILE* File;
+    File = fopen(filename, "w");
+    if(File != NULL){
+        for (int p = 0; p < m; p++) {
+            for (int i = 0; i < d; i++) {
+                if (i == d - 1)
+                    fprintf(File, "%.5f \n", query[p * d + i]);
+                else
+                    fprintf(File, "%.5f ", query[p * d + i]);
+            }
+            for (int i = 0; i < k; i++) {
+                for (int j = 0; j < d; j++) {
+                    fprintf(File, "%.5f ", reference[indices[p * k + i] * d + j]);
+                    if (j == d - 1)
+                        fprintf(File, "\n%.5f\n", distance[p * k + i]);
+                }
+            }
+        }
     }
 
 #ifdef DEBUG
-    for (int p = 0; p < n; p++) {
+    for (int p = 0; p < m; p++) {
         printf("%d-nearest neighbor of ", k);
         printf("(");
         for (int i = 0; i < d; i++) {
