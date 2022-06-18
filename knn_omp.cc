@@ -126,8 +126,8 @@ void knn_omp(
 {
     #pragma omp parallel for
     for(int i = 0; i < m; i++)
-        for(int j = 0; j < n; j++)
-            knn_idx[i * n + j] = j;
+        for(int j = 0; j < k; j++)
+            knn_idx[i * k + j] = j;
 
     float *distance = (float*)malloc(sizeof(float) * m * n);
     compute_distance(x, y, distance, m, n, d);
