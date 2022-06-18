@@ -27,11 +27,9 @@ static void compute_distance(
     #pragma parallel for
     for(int i = 0; i < m; i++) {
         for(int j = 0; j < n; j++) {
-            distance[i * n + j] = 0;
             for(int k = 0; k < d; k++) {
                 distance[i * n + j] += (query[i * d + k] - reference[j * d + k]) * (query[i * d + k] - reference[j * d + k]);
             }
-            distance[i * n + j] = (float)sqrt(distance[i * n + j]);
         }
     }
 }
