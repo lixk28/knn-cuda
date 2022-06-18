@@ -36,20 +36,29 @@ static void compute_distance(
     }
 }
 
+
 /**
- * @brief odd even sort with openmp parallel
+ * @brief odd even sort with OpenMP parallel
  *
- * @param row   the row to be sorted
- * @param n     the num of elements
+ * @param row       the row to be sorted
+ * @param row_res   first k elements of the sorted row
+ * @param n         the num of elements
+ * @param k         first k element
  */
-static void odd_even_sort(float *row, int *indices, int n)
+static void odd_even_sort(float *row, float *row_res, int *indices, int n, int k)
 {
+    int *indices_tmp = (int*)malloc(sizeof(int) * n);
+
+    #pragma omp parallel for
+    for(int i = 0; i < n; i++)
+        indices_tmp[i] = i;
+
     int flag = 1;
 
     omp_set_num_threads(n / 2);
     while (flag) {
-        flag = 0;
 
+        flag = 0;
         #pragma omp parallel for
         for (int i = 0; i < n - 1; i += 2) {
             if (row[i] > row[i + 1]) {
@@ -58,9 +67,9 @@ static void odd_even_sort(float *row, int *indices, int n)
                 row[i] = row[i + 1];
                 row[i + 1] = temp;
 
-                int temp2 = indices[i];
-                indices[i] = indices[i + 1];
-                indices[i + 1] = temp2;
+                int temp2 = indices_tmp[i];
+                indices_tmp[i] = indices_tmp[i + 1];
+                indices_tmp[i + 1] = temp2;
             }
         }
 
@@ -72,12 +81,19 @@ static void odd_even_sort(float *row, int *indices, int n)
                 row[i] = row[i + 1];
                 row[i + 1] = temp;
 
-                int temp2 = indices[i];
-                indices[i] = indices[i + 1];
-                indices[i + 1] = temp2;
+                int temp2 = indices_tmp[i];
+                indices_tmp[i] = indices_tmp[i + 1];
+                indices_tmp[i + 1] = temp2;
             }
         }
     }
+
+    #pragma omp parallel for
+    for(int j = 0; j < k; j++) {
+        row_res[j] = row[j];
+        indices[j] = indices_tmp[j];
+    }
+
 }
 
 /**
@@ -113,11 +129,12 @@ void knn_omp(
         for(int j = 0; j < n; j++)
             knn_idx[i * n + j] = j;
 
-    compute_distance(x, y, knn_dist, m, n, d);
+    float *distance = (float*)malloc(sizeof(float) * m * n);
+    compute_distance(x, y, distance, m, n, d);
 
     #pragma omp parallel for
     for(int i = 0; i < m; i++)
-        odd_even_sort(knn_dist + i * n, knn_idx + i * n, n);
+        odd_even_sort(distance + i * n, knn_dist + i * k, knn_idx + i * k, n, k);
 
 #ifdef DEBUG
     for (int p = 0; p < m; p++) {
