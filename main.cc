@@ -22,13 +22,12 @@ int main(int argc, char *argv[])
     int m = 3;
     int n = 5;
     int d = 2;
-    int p = 2;
     int k = 2;
 
     int *knn_idx = (int *)malloc(sizeof(int) * m * k);
     float *knn_dist = (float *)malloc(sizeof(float) * m * k);
 
-    knn_cuda(x, y, m, n, d, k, p, knn_idx, knn_dist);
+    knn_cuda(x, y, m, n, d, k, knn_idx, knn_dist);
 
 #ifdef DEBUG
     for (int p = 0; p < m; p++) {
