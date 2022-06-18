@@ -12,9 +12,6 @@
  *  @n: number of reference points
  *  @d: point dimension
  *  @k: number of nearest neighbors
- *  @p: power parameter for the minkowski metric
- *      - when p = 1, it's equivalent to manhattan distance
- *      - when p = 2, it's equivalent to euclidean distance
  *
  * returns:
  *  @knn_idx: indices of the nearest points
@@ -28,7 +25,6 @@ void knn_cuda(
     int n,
     int d,
     int k,
-    int p,
     int *knn_idx,
     float *knn_dist
 );
@@ -46,9 +42,6 @@ void knn_cuda(
  *  @n: number of reference points
  *  @d: point dimension
  *  @k: number of nearest neighbors
- *  @p: power parameter for the minkowski metric
- *      - when p = 1, it's equivalent to manhattan distance
- *      - when p = 2, it's equivalent to euclidean distance
  *
  * returns:
  *  @knn_idx: indices of the nearest points
@@ -62,7 +55,6 @@ void knn_cublas(
     int n,
     int d,
     int k,
-    int p,
     int *knn_idx,
     float *knn_dist
 );
@@ -81,14 +73,14 @@ void knn_cublas(
  *  @distance:  distance matrix
  */
 void knn_omp(
-    float *query,       // query points
-    float *reference,   // reference points
-    int m,              // number of query points
-    int n,              // number of reference points
-    int d,              // point dimension
-    int k,              // number of nearest neighbors
-    int *indices,     // index matrix
-    float *distance     // distance matrix
+    float *query,
+    float *reference,
+    int m,
+    int n,
+    int d,
+    int k,
+    int *indices,
+    float *distance
 );
 
 #endif
