@@ -14,7 +14,7 @@
  * @param n             the num of reference points
  * @param d             dimension of points
  */
-void compute_distance(
+static void compute_distance(
     float *query,
     float *reference,
     float *distance,
@@ -24,9 +24,9 @@ void compute_distance(
 )
 {
     #pragma parallel for
-    for(int i = 0; i < m; i++){
-        for(int j = 0; j < n; j++){
-            for(int k = 0; k < d; k++){
+    for(int i = 0; i < m; i++) {
+        for(int j = 0; j < n; j++) {
+            for(int k = 0; k < d; k++) {
                 distance[i * n + j] += (query[i * d + k] - reference[j * d + k]) * (query[i * d + k] - reference[j * d + k]);
             }
         }
@@ -36,10 +36,10 @@ void compute_distance(
 /**
  * @brief odd even sort with openmp parallel
  *
- * @param row
+ * @param row   the row to be sorted
  * @param n     the num of elements
  */
-void odd_even_sort(float *row, int *indices, int n)
+static void odd_even_sort(float *row, int *indices, int n)
 {
     int flag = 1;
 
@@ -78,47 +78,30 @@ void odd_even_sort(float *row, int *indices, int n)
 }
 
 /**
- * @brief
+ * @brief K-nearest neighbor implement with OpenMp
  *
- * @param x
- * @param y
- * @param m
- * @param n
- * @param d
- * @return void*
+ * params:
+ *  @query:     query points
+ *  @reference: reference points
+ *  @m:         number of query points
+ *  @n:         number of reference points
+ *  @d:         point dimension
+ *  @k:         number of nearest neighbors
+ *  @indices:   index matrix
+ *  @distance:  distance matrix
  */
-void *generate_data(
-    float *x,     // query points
-    float *y,     // reference points
-    int m,        // #query points
-    int n,        // #reference points
-    int d         // point dimension
+void knn_omp(
+    float *query,       // query points
+    float *reference,   // reference points
+    int m,              // number of query points
+    int n,              // number of reference points
+    int d,              // point dimension
+    int k,              // number of nearest neighbors
+    int *indices,     // index matrix
+    float *distance     // distance matrix
 )
 {
-    srand(time(NULL));
-    for (int i = 0; i < m * d; i++) {
-        x[i] = -500 + (1000.0f * rand()  / RAND_MAX );
-    }
-
-    for (int i = 0; i < n * d; i++) {
-        y[i] = -500 + (1000.0f * rand()  / RAND_MAX );
-    }
-
-}
-
-int main()
-{
-    const int d = 1;    //dimension
-    const int n = 256;   //the num of reference points
-    const int m = 256;    //the num of query points
-    const int k = 20;   //the num of neighbors
-
-    float *query = (float *)malloc(sizeof(float) * m * d);
-    float *reference = (float *)malloc(sizeof(float) * n * d);
-    float *distance = (float *)malloc(sizeof(float) * m * n);
-    int *indices = (int *)malloc(sizeof(int) * m * n);
     generate_data(query, reference, m, n, d);
-
     #pragma omp parallel for
     for(int i = 0; i < m; i++) {
         for(int j = 0; j < n; j++) {
@@ -131,27 +114,6 @@ int main()
     #pragma omp parallel for
     for(int i = 0; i < m; i++) {
         odd_even_sort(distance + i * n, indices + i * n, n);
-    }
-
-    const char* filename = "./result_omp.txt";
-    FILE* file;
-    file = fopen(filename, "w");
-    if(file != NULL) {
-        for (int p = 0; p < m; p++) {
-            for (int i = 0; i < d; i++) {
-                if (i == d - 1)
-                    fprintf(file, "%.5f \n", query[p * d + i]);
-                else
-                    fprintf(file, "%.5f ", query[p * d + i]);
-            }
-            for (int i = 0; i < k; i++) {
-                for (int j = 0; j < d; j++) {
-                    fprintf(file, "%.5f ", reference[indices[p * k + i] * d + j]);
-                    if (j == d - 1)
-                        fprintf(file, "%.5f\n", distance[p * k + i]);
-                }
-            }
-        }
     }
 
 #ifdef DEBUG

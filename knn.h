@@ -67,4 +67,28 @@ void knn_cublas(
     float *knn_dist
 );
 
+/**
+ * @brief K-nearest neighbor implement with OpenMP
+ *
+ * params:
+ *  @query:     query points
+ *  @reference: reference points
+ *  @m:         number of query points
+ *  @n:         number of reference points
+ *  @d:         point dimension
+ *  @k:         number of nearest neighbors
+ *  @indices:   index matrix
+ *  @distance:  distance matrix
+ */
+void knn_omp(
+    float *query,       // query points
+    float *reference,   // reference points
+    int m,              // number of query points
+    int n,              // number of reference points
+    int d,              // point dimension
+    int k,              // number of nearest neighbors
+    int *indices,     // index matrix
+    float *distance     // distance matrix
+);
+
 #endif
