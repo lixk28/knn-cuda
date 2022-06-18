@@ -2,6 +2,8 @@
 #define UTILS_H
 
 #include <stdio.h>
+#include <math.h>
+#include <time.h>
 #include <cuda.h>
 #include <cuda_runtime.h>
 
@@ -21,13 +23,6 @@
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
-__global__ void warmup()
-{
-    // warmup kernel
-    // do nothing
-}
-
-
 /**
  *  @brief randomly generate test data
  *
@@ -38,7 +33,7 @@ __global__ void warmup()
  *  @d: point dimension
  *
  */
-void generate_data(
+inline void generate_data(
     float *x,     // query points
     float *y,     // reference points
     int m,        // #query points
@@ -57,7 +52,6 @@ void generate_data(
 
 }
 
-
 /**
  * @brief
  *
@@ -67,7 +61,7 @@ void generate_data(
  * @param indices
  * @param distance
  */
-void output(
+inline void output(
     const char *filename,
     int m,
     int k,
@@ -85,6 +79,45 @@ void output(
         }
     }
     fclose(file);
+}
+
+/**
+ * @brief check the error
+ *
+ * @param idx1
+ * @param dist1
+ * @param idx2
+ * @param dist2
+ * @param m
+ * @param k
+ */
+inline void error_check(int *idx1, float *dist1, int *idx2, float *dist2, int m, int k)
+{
+    float threshold = 0.5f;
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < k; j++) {
+            if (idx1[i * k + j] != idx2[i * k + j]) {
+                printf("error: the %d th near neighbour of the %d th point is different : ", j, i);
+                printf("cuda : %d, omp : %d\n", idx1[i * k + j], idx2[i * k + j]);
+                continue;
+            }
+            if (fabs(dist1[i * k + j] - dist2[i * k + j]) >= threshold) {
+                printf("error: the dist from the %d th point to its %d th near neighbour is over threshold : ", i, j);
+                printf("cuda : %f, omp : %f\n", dist1[i * k + j], dist2[i * k + j]);
+                continue;
+            }
+        }
+    }
+}
+
+/**
+ * @brief gets the local time in nanoseconds
+ */
+inline long get_time()
+{
+    struct timespec ts;
+    timespec_get(&ts, TIME_UTC);
+    return (long)ts.tv_sec * 1000L + ts.tv_nsec / 1000000L;
 }
 
 #endif
