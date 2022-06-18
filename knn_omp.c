@@ -4,8 +4,6 @@
 #include <time.h>
 #include "omp.h"
 
-#define DEBUG
-
 /**
  * @brief compute the distance between query points and reference points
  *
@@ -17,9 +15,9 @@
  * @param d             dimension of points
  */
 void compute_distance(
-    float* query,
-    float* reference,
-    float* distance,
+    float *query,
+    float *reference,
+    float *distance,
     int m,
     int n,
     int d
@@ -29,7 +27,6 @@ void compute_distance(
     for(int i = 0; i < m; i++){
         for(int j = 0; j < n; j++){
             for(int k = 0; k < d; k++){
-                #pragma omp atomic
                 distance[i * n + j] += (query[i * d + k] - reference[j * d + k]) * (query[i * d + k] - reference[j * d + k]);
             }
         }
@@ -42,20 +39,17 @@ void compute_distance(
  * @param row
  * @param n     the num of elements
  */
-void odd_even_sort(float* row, int* indices, int n){
-
+void odd_even_sort(float *row, int *indices, int n)
+{
     int flag = 1;
 
     omp_set_num_threads(n / 2);
-    while (flag)
-    {
+    while (flag) {
         flag = 0;
 
         #pragma omp parallel for
-        for (int i = 0; i < n - 1; i += 2)
-        {
-            if (row[i] > row[i + 1])
-            {
+        for (int i = 0; i < n - 1; i += 2) {
+            if (row[i] > row[i + 1]) {
                 flag = 1;
                 float temp = row[i];
                 row[i] = row[i + 1];
@@ -68,10 +62,8 @@ void odd_even_sort(float* row, int* indices, int n){
         }
 
         #pragma omp parallel for
-        for (int i = 1; i < n - 1; i += 2)
-        {
-            if (row[i] > row[i + 1])
-            {
+        for (int i = 1; i < n - 1; i += 2) {
+            if (row[i] > row[i + 1]) {
                 flag = 1;
                 float temp = row[i];
                 row[i] = row[i + 1];
@@ -85,13 +77,6 @@ void odd_even_sort(float* row, int* indices, int n){
     }
 }
 
-// // getTime gets the local time in nanoseconds.
-// long get_time() {
-//     struct timespec ts;
-//     timespec_get(&ts, TIME_UTC);
-//     return (long)ts.tv_sec * 1000L + ts.tv_nsec / 1000000L;
-// }
-
 /**
  * @brief
  *
@@ -102,7 +87,7 @@ void odd_even_sort(float* row, int* indices, int n){
  * @param d
  * @return void*
  */
-void* generate_data(
+void *generate_data(
     float *x,     // query points
     float *y,     // reference points
     int m,        // #query points
@@ -124,21 +109,22 @@ void* generate_data(
 
 }
 
-int main(){
+int main()
+{
     const int d = 3;    //dimension
-    const int n = 10;    //the num of reference points
+    const int n = 10;   //the num of reference points
     const int m = 3;    //the num of query points
-    const int k = 10;    //the num of neighbors
+    const int k = 10;   //the num of neighbors
 
-    float* query = (float*)malloc(sizeof(float) * m * d);
-    float* reference = (float*)malloc(sizeof(float) * n * d);
-    float* distance = (float*)malloc(sizeof(float) * m * n);
-    int* indices = (int*)malloc(sizeof(int) * m * n);
+    float *query = (float *)malloc(sizeof(float) * m * d);
+    float *reference = (float *)malloc(sizeof(float) * n * d);
+    float *distance = (float *)malloc(sizeof(float) * m * n);
+    int *indices = (int *)malloc(sizeof(int) * m * n);
     generate_data(query, reference, m, n, d);
 
     #pragma omp parallel for
-    for(int i = 0; i < m; i++){
-        for(int j = 0; j < n; j++){
+    for(int i = 0; i < m; i++) {
+        for(int j = 0; j < n; j++) {
             indices[i * n + j] = j;
         }
     }
@@ -146,26 +132,26 @@ int main(){
     compute_distance(query, reference, distance, m, n, d);
 
     #pragma omp parallel for
-    for(int i = 0; i < m; i++){
+    for(int i = 0; i < m; i++) {
         odd_even_sort(distance + i * n, indices + i * n, n);
     }
 
     const char* filename = "./result_omp.txt";
-    FILE* File;
-    File = fopen(filename, "w");
-    if(File != NULL){
+    FILE* file;
+    file = fopen(filename, "w");
+    if(file != NULL) {
         for (int p = 0; p < m; p++) {
             for (int i = 0; i < d; i++) {
                 if (i == d - 1)
-                    fprintf(File, "%.5f \n", query[p * d + i]);
+                    fprintf(file, "%.5f \n", query[p * d + i]);
                 else
-                    fprintf(File, "%.5f ", query[p * d + i]);
+                    fprintf(file, "%.5f ", query[p * d + i]);
             }
             for (int i = 0; i < k; i++) {
                 for (int j = 0; j < d; j++) {
-                    fprintf(File, "%.5f ", reference[indices[p * k + i] * d + j]);
+                    fprintf(file, "%.5f ", reference[indices[p * k + i] * d + j]);
                     if (j == d - 1)
-                        fprintf(File, "\n%.5f\n", distance[p * k + i]);
+                        fprintf(file, "\n%.5f\n", distance[p * k + i]);
                 }
             }
         }
