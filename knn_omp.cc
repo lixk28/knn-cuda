@@ -2,7 +2,8 @@
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
-#include "omp.h"
+#include <omp.h>
+#include "knn.h"
 
 /**
  * @brief compute the distance between query points and reference points
@@ -78,43 +79,43 @@ static void odd_even_sort(float *row, int *indices, int n)
 }
 
 /**
- * @brief K-nearest neighbor implement with OpenMp
+ * @brief K-nearest neighbor implement with OpenMP
  *
  * params:
- *  @query:     query points
- *  @reference: reference points
- *  @m:         number of query points
- *  @n:         number of reference points
- *  @d:         point dimension
- *  @k:         number of nearest neighbors
- *  @indices:   index matrix
- *  @distance:  distance matrix
+ *  @x: query points
+ *  @y: reference points
+ *  @m: number of query points
+ *  @n: number of reference points
+ *  @d: point dimension
+ *  @k: number of nearest neighbors
+ *  @knn_idx: index matrix
+ *  @knn_dist: distance matrix
+ *
+ * returns:
+ *  @knn_idx: indices of the nearest points
+ *  @knn_dist: distance from the nearest points
  */
 void knn_omp(
-    float *query,       // query points
-    float *reference,   // reference points
-    int m,              // number of query points
-    int n,              // number of reference points
-    int d,              // point dimension
-    int k,              // number of nearest neighbors
-    int *indices,     // index matrix
-    float *distance     // distance matrix
+    float *x,
+    float *y,
+    int m,
+    int n,
+    int d,
+    int k,
+    int *knn_idx,
+    float *knn_dist
 )
 {
-    generate_data(query, reference, m, n, d);
     #pragma omp parallel for
-    for(int i = 0; i < m; i++) {
-        for(int j = 0; j < n; j++) {
-            indices[i * n + j] = j;
-        }
-    }
+    for(int i = 0; i < m; i++)
+        for(int j = 0; j < n; j++)
+            knn_idx[i * n + j] = j;
 
-    compute_distance(query, reference, distance, m, n, d);
+    compute_distance(x, y, knn_dist, m, n, d);
 
     #pragma omp parallel for
-    for(int i = 0; i < m; i++) {
-        odd_even_sort(distance + i * n, indices + i * n, n);
-    }
+    for(int i = 0; i < m; i++)
+        odd_even_sort(knn_dist + i * n, knn_idx + i * n, n);
 
 #ifdef DEBUG
     for (int p = 0; p < m; p++) {
@@ -122,21 +123,20 @@ void knn_omp(
         printf("(");
         for (int i = 0; i < d; i++) {
             if (i == d - 1)
-                printf("%f)\n", query[p * d + i]);
+                printf("%f)\n", x[p * d + i]);
             else
-                printf("%f, ", query[p * d + i]);
+                printf("%f, ", x[p * d + i]);
         }
         for (int i = 0; i < k; i++) {
             printf("(");
             for (int j = 0; j < d; j++) {
                 if (j == d - 1)
-                    printf("%f): %f\n", reference[indices[p * k + i] * d + j], distance[p * k + i]);
+                    printf("%f): %f\n", y[knn_idx[p * k + i] * d + j], knn_dist[p * k + i]);
                 else
-                    printf("%f, ", reference[indices[p * k + i] * d + j]);
+                    printf("%f, ", y[knn_idx[p * k + i] * d + j]);
             }
         }
         printf("\n\n");
     }
 #endif
-
 }

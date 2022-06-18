@@ -1,6 +1,6 @@
 CXX      := nvcc
 CXXFLAGS :=
-LDFLAGS  := -lcublas
+LDFLAGS  := -lm -lcublas -Xcompiler -fopenmp
 BUILD    ?=
 
 ifeq ($(BUILD), DEBUG)
@@ -9,7 +9,7 @@ endif
 
 .PHONY: all
 all:
-	$(CXX) $(CXXFLAGS) knn.cu main.cc -o main $(LDFLAGS)
+	$(CXX) $(CXXFLAGS) knn.cu knn_omp.cc main.cc -o main $(LDFLAGS)
 
 .PHONY: debug
 debug:

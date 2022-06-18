@@ -1,6 +1,10 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <stdio.h>
+#include <cuda.h>
+#include <cuda_runtime.h>
+
 // CHECK macro from Grossman and McKercher, "Professional CUDA C Programming"
 #define CHECK(call)                                         \
 {                                                           \
