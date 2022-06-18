@@ -17,4 +17,10 @@
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
 
+__global__ void warmup()
+{
+    // warmup kernel
+    // do nothing
+}
+
 #endif
