@@ -31,7 +31,7 @@ static void compute_distance(
             for(int k = 0; k < d; k++) {
                 distance[i * n + j] += (query[i * d + k] - reference[j * d + k]) * (query[i * d + k] - reference[j * d + k]);
             }
-            distance[i * n + j] = sqrt(distance[i * n + j]);
+            distance[i * n + j] = sqrtf(distance[i * n + j]);
         }
     }
 }
