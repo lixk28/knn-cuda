@@ -1,6 +1,6 @@
 CXX      := nvcc
 CXXFLAGS :=
-LDFLAGS  := -lm -lcublas
+LDFLAGS  := -lcublas
 BUILD    ?=
 
 ifeq ($(BUILD), DEBUG)

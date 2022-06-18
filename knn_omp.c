@@ -98,23 +98,20 @@ void *generate_data(
     srand(time(NULL));
     for (int i = 0; i < m * d; i++) {
         x[i] = -500 + (1000.0f * rand()  / RAND_MAX );
-        printf("%f ", x[i]);
     }
-    printf("\n");
+
     for (int i = 0; i < n * d; i++) {
         y[i] = -500 + (1000.0f * rand()  / RAND_MAX );
-        printf("%f ", y[i]);
     }
-    printf("\n");
 
 }
 
 int main()
 {
-    const int d = 3;    //dimension
-    const int n = 10;   //the num of reference points
-    const int m = 3;    //the num of query points
-    const int k = 10;   //the num of neighbors
+    const int d = 1;    //dimension
+    const int n = 256;   //the num of reference points
+    const int m = 256;    //the num of query points
+    const int k = 20;   //the num of neighbors
 
     float *query = (float *)malloc(sizeof(float) * m * d);
     float *reference = (float *)malloc(sizeof(float) * n * d);
@@ -151,7 +148,7 @@ int main()
                 for (int j = 0; j < d; j++) {
                     fprintf(file, "%.5f ", reference[indices[p * k + i] * d + j]);
                     if (j == d - 1)
-                        fprintf(file, "\n%.5f\n", distance[p * k + i]);
+                        fprintf(file, "%.5f\n", distance[p * k + i]);
                 }
             }
         }
