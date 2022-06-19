@@ -44,6 +44,57 @@ __global__ void compute_distance(
 
 /**
  * description:
+ *  cuda kernel for computing the distance matrix using shared memory
+ *
+ * params:
+ *  @x_d: query points stored in device memory
+ *  @y_d: reference points stored in device memory
+ *  @m: number of query points
+ *  @n: number of reference points
+ *  @d: dimension of points
+ *
+ * returns:
+ *  @dist_d: distance matrix of size m x n from query points to reference points
+ *
+ */
+__global__ void compute_distance_shared(
+    float *x_d,     // query points (stored in device memory)
+    float *y_d,     // reference points (stored in device memory)
+    int m,          // #query points (#rows of distance matrix)
+    int n,          // #reference points (#cols of distance matrix)
+    int d,          // point dimension
+    float *dist_d   // distance matrix
+)
+{
+    int tx = threadIdx.x;
+    int ty = threadIdx.y;
+    int col = blockIdx.x * blockDim.x + tx;
+    int row = blockIdx.y * blockDim.y + ty;
+    __shared__ float shared_mat_x[1024], shared_mat_y[1024];
+    int num = divup(d, 32), remain = d % 32 == 0 ? 32 : d % 32;
+    int flag1 = row < m;
+    int flag2 = col < n;
+    float res = 0.0f;
+    for (int i = 0; i < num; i++) {
+        shared_mat_x[ty * 32 + tx] = (tx < remain && flag1) ? x_d[row * d + tx + 32 * i] : 0;
+        shared_mat_y[tx * 32 + ty] = (tx < remain && flag1) ? y_d[col * d + ty + 32 * i] : 0;
+        __syncthreads();
+        if (flag1 && flag2) {
+            for (int j = 0; j < 32; j++) {
+                float tmp = shared_mat_x[ty * 32 + j] - shared_mat_y[tx * 32 + j];
+                res += tmp * tmp;
+            }
+        }
+        __syncthreads();
+    }
+    if (flag1 && flag2) {
+        dist_d[row * n + col] = sqrtf(res);
+        //printf("%f from %d %d\n",res,tx,ty);
+    }
+}
+
+/**
+ * description:
  *  cuda kernel for sorting the k smallest points
  *  for each row of distance matrix, find the top k smallest values
  *
