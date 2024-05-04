@@ -1,16 +1,16 @@
-# GPU-accelerated nearest neighbor search
+# GPU-accelerated k-nearest neighbors search
 
-This repository contains our final project for multicore programming lectured by [Prof. Tao (Jun Tao)](http://www.juntao.org/) at [Sun Yat-sen University](https://www.sysu.edu.cn/).
+This repository contains our final project for DCS316: Multicore Programming lectured by [Prof. Tao (Jun Tao)](http://www.juntao.pro) at [Sun Yat-sen University](https://www.sysu.edu.cn/sysuen).
 
-We basically reproduced the results in this two papers:
+We reproduced and further optimized kNN algorithms proposed in the following papers:
 
-- [Fast k Nearest Neighbor Search using GPU, Vincent Garcia](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.159.9386&rep=rep1&type=pdf)
-- [k-Nearest Neighbor Search: Fast GPU-Based Implementations and Application to High-Dimensional Feature Space, Vincent Garcia](http://citeseerx.ist.psu.edu/viewdoc/download;jsessionid=064592F4CB50DE20D130694460A83334?doi=10.1.1.172.2896&rep=rep1&type=pdf)
+- [Fast k Nearest Neighbor Search using GPU, Vincent Garcia](https://arxiv.org/pdf/0804.1448)
+- [k-Nearest Neighbor Search: Fast GPU-Based Implementations and Application to High-Dimensional Feature Space, Vincent Garcia](https://vincentfpgarcia.github.io/data/Garcia_2010_ICIP.pdf)
 
-We implemented three versions for kNN (using exhaustive search):
+There are 3 versions of kNN in our implementation:
 
-- kNN OpenMP
-- kNN CUDA
-- kNN CUBLAS (use `cublasSgemm` to accelerate)
+1. kNN OpenMP
+2. kNN CUDA
+3. kNN CUBLAS (accelerated by `cublasSgemm` based on kNN CUDA)
 
-OpenMP version is for comparison, CUBLAS version is way more faster than CUDA version for high dimensional data, and it's our best implementation for this problem.
+CUBLAS version is way more faster than CUDA version for high dimensional data, and it's our best implementation for GPU-accelerated kNN.
